@@ -49,3 +49,20 @@ img[src$="Spreadsheet_EN.png"] {
 .sheet-button:last-child {
     border-radius: 0 5px 0 0; /* Rounded right corner for the last button */
 }
+
+// Hide the browser/body scrollbar
+:host {
+    display: block;
+    height: 100vh;
+    overflow: hidden; // This prevents the component from creating browser scrollbar
+}
+
+// Alternative approach - hide body scrollbar when this component is active
+:host ::ng-deep body {
+    overflow: hidden !important;
+}
+
+//  Global style approach
+body.sketch-active {
+    overflow: hidden !important;
+}

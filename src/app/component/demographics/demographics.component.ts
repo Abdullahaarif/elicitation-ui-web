@@ -15,15 +15,14 @@ export class DemographicsComponent implements OnInit {
 
     protected readonly Language = Language;
 
-    age: string = "";
+    // Updated variables for new questions
+    spreadsheetExperience: string = "";
+    tabletExperience: string = "";
+    stylusExperience: string = "";
+    writingHand: string = "";
+    scriptDirection: string = "";
+    ageGroup: string = "";
     gender: string = "";
-    leftHandedOrRightHanded: string = "";
-    ownATablet: boolean = false;
-    useTablet: string = "";
-    usePencil: boolean = false;
-    useSpreadsheets: boolean = false;
-    anyExperience: boolean = false;
-    useSpreadsheetsMultiTouch: boolean = false;
 
     constructor(
         private router: Router,
@@ -36,12 +35,17 @@ export class DemographicsComponent implements OnInit {
         this.language = this.taskService.chosenLanguage;
     }
 
-    //TODO: Refactor
     checkFormCompletion(): boolean {
-        if (this.gender === "" || this.age === "" || this.leftHandedOrRightHanded === "") {
-            return false;
-        }
-        if (this.ownATablet && this.useTablet === "") {
+        // Check if all required fields are filled
+        if (
+            this.spreadsheetExperience === "" ||
+            this.tabletExperience === "" ||
+            this.stylusExperience === "" ||
+            this.writingHand === "" ||
+            this.scriptDirection === "" ||
+            this.ageGroup === "" ||
+            this.gender === ""
+        ) {
             return false;
         }
         return true;
@@ -49,15 +53,13 @@ export class DemographicsComponent implements OnInit {
 
     saveData(): void {
         const data = {
+            spreadsheetExperience: this.spreadsheetExperience,
+            tabletExperience: this.tabletExperience,
+            stylusExperience: this.stylusExperience,
+            writingHand: this.writingHand,
+            scriptDirection: this.scriptDirection,
+            ageGroup: this.ageGroup,
             gender: this.gender,
-            age: this.age,
-            leftHandedOrRightHanded: this.leftHandedOrRightHanded,
-            ownATablet: this.ownATablet,
-            useTablet: this.useTablet,
-            usePencil: this.usePencil,
-            useSpreadsheets: this.useSpreadsheets,
-            anyExperience: this.anyExperience,
-            useSpreadsheetsMultiTouch: this.useSpreadsheetsMultiTouch,
         };
 
         this.dataStorageService.saveData(

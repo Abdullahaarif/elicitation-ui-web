@@ -103,81 +103,101 @@ export class TaskService {
     ];
 
     englishTasks = [
-        { title: "Change value", description: "Enter the value 100 into cell F9.", group: Group.P },
-        { title: "Delete value", description: "Delete the contents of cell E8.", group: Group.P },
-        { title: "Delete values", description: "Delete the contents of cells J7-J11.", group: Group.A },
-        {
-            title: "Add two values",
-            description: "Calculate the sum of cells I8 and J8 in cell K8.",
-            group: Group.A,
-        },
-        { title: "Insert column", description: "Insert a new column between columns B and C.", group: Group.A },
-        { title: "Remove column", description: "Remove the whole column B from the table.", group: Group.A },
-        { title: "Move cells", description: "Move cells A15-C15 to H3.", group: Group.A },
-        {
-            title: "Add multiple values",
-            description: "Calculate the sum of cells E7-E11 in cell E13.",
-            group: Group.B,
-        },
-        {
-            title: "Format values",
-            description: "Format the values in cells C7-C11 as Dollar amounts with two decimal places.",
-            group: Group.B,
-        },
-        { title: "Frame cell", description: "Add a single frame around cells A15-C15.", group: Group.B },
-        {
-            title: "Transfer formatting",
-            description: "Transfer the formatting of cell A13 to cells E13-J13.",
-            group: Group.B,
-        },
-        {
-            title: "Create pie chart",
-            description: "Create a pie chart from the values in cells E8-J8.",
-            group: Group.B,
-        },
-        {
-            title: "Create bar chart",
-            description: "Create a bar chart from the value in cells C7-C11.",
-            group: Group.B,
-        },
-        {
-            title: "Continue series",
-            description: "Continue the series of values in row 6 (E6-J6) up to cell M6.",
-            group: Group.B,
-        },
-        {
-            title: "Transpose values",
-            description: "Transpose the names in cells A7-A11 to row 17.",
-            group: Group.B,
-        },
-        {
-            title: "Sort data",
-            description: "Sort the data in rows 7-11 alphabetically by the employee names in column A.",
-            group: Group.C,
-        },
-        {
-            title: "Calculate multiple sums",
-            description: "For each month, calculate the sum of all employees' hours in cells E13-J13.",
-            group: Group.C,
-        },
-        {
-            title: "Construct formula",
-            description:
-                "For each employee, calculate the gross hourly rate in column D by factoring the overhead cost percentage from cell C15 into the net hourly rate in column C.",
-            group: Group.C,
-        },
-        {
-            title: "Conditional formatting",
-            description:
-                "Define a conditional formatting rule for cells C7-11 so values greater than 200 are displayed in red but others in green.",
-            group: Group.C,
-        },
-        {
-            title: "Multiply values",
-            description: "Calculate the total salary of employee Smith in cell L7.",
-            group: Group.C,
-        },
-    ];
+    // NEW Question 0 - Tutorial question
+    { 
+        title: "Delete Item Price Tutorial", 
+        description: "Q0: How would you delete the item price of PRD-6647?", 
+        group: Group.W  // Using W group like other warmup questions
+    },
+        // Warmup questions (Group W)
+    { 
+        title: "Calculate Net Subtotal", 
+        description: "Q1: How would you calculate the Net Subtotal by adding the Total Prices of all invoiced items?", 
+        group: Group.W 
+    },
+    { 
+        title: "Calculate Total Price for Apples", 
+        description: "Q2: How would you calculate the Total Price for Apples by multiplying their Quantity and Item Price?", 
+        group: Group.W 
+    },
+    
+    // Main questions (Group A) - in specified order
+    { 
+        title: "Calculate Gross Subtotal", 
+        description: "Q3: How would you calculate the Gross Subtotal by adding 15% tax to the Net Subtotal?", 
+        group: Group.A 
+    },
+    { 
+        title: "Calculate Orange Juice Quantity", 
+        description: "Q4: How would you calculate the Quantity of Orange Juice?", 
+        group: Group.A 
+    },
+    { 
+        title: "Identify Maximum Discount", 
+        description: "Q5: How would you identify the maximum of all Discounts, and display it in cell J4?", 
+        group: Group.A 
+    },
+    { 
+        title: "Calculate Average Item Price", 
+        description: "Q6: How would you calculate the average of all Item Prices, round the result to the nearest whole number, and display it in cell J5?", 
+        group: Group.A 
+    },
+    { 
+        title: "Calculate Packaging Fee", 
+        description: "Q7: How would you calculate the Packaging Fee by multiplying the Delivery Fee with the maximum of all Quantities and the average of all Discounts, and rounding the result to the nearest whole number?", 
+        group: Group.A 
+    },
+    { 
+        title: "Calculate Chocolate Total Price", 
+        description: "Q8: Assuming there is a \"get one free\" deal for Chocolate, how would you calculate its Total Price?", 
+        group: Group.A 
+    },
+    { 
+        title: "Calculate Total Price with Discount", 
+        description: "Q9: How would you calculate the Total Price for each individual item by multiplying its Quantity and Item Price and applying the Discount?", 
+        group: Group.A 
+    },
+    { 
+        title: "Set Conditional Delivery Fee", 
+        description: "Q10: How would you set the Delivery Fee to 10 € if the Gross Subtotal is less than 100 €, or 20 € otherwise?", 
+        group: Group.A 
+    },
+    { 
+        title: "Calculate Invoice Amount", 
+        description: "Q11: How would you calculate the Invoice Amount by subtracting the Customer Credit from the Grand Total?", 
+        group: Group.A 
+    },
+    { 
+        title: "Calculate Express Fee", 
+        description: "Q12: How would you calculate the Express Fee (in the Invoice) by multiplying the Gross Subtotal with the Express Rate (in the Inventory)?", 
+        group: Group.A 
+    },
+    { 
+        title: "Calculate Invoice with Holiday Discount", 
+        description: "Q13: How would you calculate the Invoice Amount by subtracting the Customer Credit and the Holiday Discount (in the Inventory) from the Grand Total?", 
+        group: Group.A 
+    },
+    { 
+        title: "Determine Wine Item Price", 
+        description: "Q14: How would you determine the Item Price of Wine (in the Invoice) by using its Item No. to look up its Unit Price in the Inventory?", 
+        group: Group.A 
+    },
+    { 
+        title: "Calculate Detergent Price with Surcharge", 
+        description: "Q15: How would you calculate the Item Price of Laundry Detergent (in the Invoice) by adding the Low Stock Surcharge (in the Inventory) to its Unit Price if its Stock is lower than 5?", 
+        group: Group.A 
+    },
+    { 
+        title: "List Low Stock Items", 
+        description: "Q16: How would you list the Item No's of all items whose Stock is lower than 5 next to \"Low stock\" in the Inventory?", 
+        group: Group.A 
+    },
+    { 
+        title: "List Unknown Items", 
+        description: "Q17: How would you list the Item No's of all invoiced items that are not included in the Inventory under \"Unknown items\" in the Invoice?", 
+        group: Group.A 
+    },
+];
 
     public initData(language: Language): Task[] {
         this.chosenLanguage = language;
@@ -202,31 +222,43 @@ export class TaskService {
     }
 
     public randomiseByGroup(tasks: Task[]): Task[] {
-        const groupP: Task[] = tasks.filter((task) => task.group === Group.P);
-        const groupA: Task[] = tasks.filter((task) => task.group === Group.A);
-        const groupB: Task[] = tasks.filter((task) => task.group === Group.B);
-        const groupC: Task[] = tasks.filter((task) => task.group === Group.C);
-
-        const shuffleArray = (array: Task[]) => {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        };
-
-        shuffleArray(groupP);
-        shuffleArray(groupA);
-        shuffleArray(groupB);
-        shuffleArray(groupC);
-
-        const shuffledList: Task[] = groupP.concat(groupA, groupB, groupC);
-
-        shuffledList.forEach((task, index) => {
+    // For English, return tasks in the exact order they're defined
+    if (this.chosenLanguage === Language.ENGLISH) {
+        // Simply assign task numbers sequentially
+        tasks.forEach((task, index) => {
             task.taskNumber = index + 1;
         });
-        console.log("Loaded Tasks: ", shuffledList);
-        this.loadedTasks = shuffledList;
-
-        return shuffledList;
+        console.log("Loaded Tasks (English - No randomization): ", tasks);
+        this.loadedTasks = tasks;
+        return tasks;
     }
+    
+    // Keep existing randomization logic for German
+    const groupP: Task[] = tasks.filter((task) => task.group === Group.P);
+    const groupA: Task[] = tasks.filter((task) => task.group === Group.A);
+    const groupB: Task[] = tasks.filter((task) => task.group === Group.B);
+    const groupC: Task[] = tasks.filter((task) => task.group === Group.C);
+
+    const shuffleArray = (array: Task[]) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    };
+
+    shuffleArray(groupP);
+    shuffleArray(groupA);
+    shuffleArray(groupB);
+    shuffleArray(groupC);
+
+    const shuffledList: Task[] = groupP.concat(groupA, groupB, groupC);
+
+    shuffledList.forEach((task, index) => {
+        task.taskNumber = index + 1;
+    });
+    console.log("Loaded Tasks (German - Randomized): ", shuffledList);
+    this.loadedTasks = shuffledList;
+
+    return shuffledList;
+}
 }

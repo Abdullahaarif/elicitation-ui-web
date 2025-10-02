@@ -14,13 +14,15 @@ import { MessageService } from "../../shared/service/message.service";
 export class QuestionnaireComponent implements OnInit {
     currentTask: Task | undefined;
 
-    question1_GERMAN = "Wie einfach kann man dieses Szenario sketchen?";
-    question1_ENGLISH = "How easy it is to sketch this scenario?";
-    question2_GERMAN = "Wie zufrieden sind Sie mit Ihrem Sketch?";
-    question2_ENGLISH = "How satisfied are you with your sketch?";
+    // Updated question
+    question1_GERMAN = "Wie fanden Sie diese Aufgabe?";
+    question1_ENGLISH = "How did you find this task?";
+
+    // Options for the question
+    options_GERMAN = ["Sehr einfach", "Einfach", "Ok", "Schwierig", "Sehr schwierig"];
+    options_ENGLISH = ["Very easy", "Easy", "Ok", "Difficult", "Very difficult"];
 
     formQuestion1 = "";
-    formQuestion2 = "";
 
     startTime: Date | undefined;
 
@@ -48,7 +50,8 @@ export class QuestionnaireComponent implements OnInit {
     }
 
     checkFormCompletion(): boolean {
-        return !(this.formQuestion1 === "" || this.formQuestion2 === "");
+        // Always return true to make it optional
+        return true;
     }
 
     clickExitStudy() {
@@ -60,13 +63,9 @@ export class QuestionnaireComponent implements OnInit {
     }
 
     clickNextPage(): void {
-        if (this.checkFormCompletion()) {
-            this.saveData();
-
-            this.nextPage();
-        } else {
-            this.messageService.notCompletedForm(this.currentTask!.language);
-        }
+        // No validation needed - questionnaire is optional
+        this.saveData();
+        this.nextPage();
     }
 
     nextPage(): void {
@@ -81,9 +80,7 @@ export class QuestionnaireComponent implements OnInit {
         const questionnaireData = {
             id: this.currentTask?.id,
             question1: this.currentTask?.language === Language.GERMAN ? this.question1_GERMAN : this.question1_ENGLISH,
-            question2: this.currentTask?.language === Language.GERMAN ? this.question2_GERMAN : this.question2_ENGLISH,
-            answer1: this.formQuestion1,
-            answer2: this.formQuestion2,
+            answer1: this.formQuestion1 === "" ? "Not answered" : this.formQuestion1,
             startTime: this.startTime,
             endTime: new Date(),
         };
@@ -92,5 +89,10 @@ export class QuestionnaireComponent implements OnInit {
             `${this.currentTask?.taskNumber}_questionnaire_task${this.currentTask?.id}.json`,
             new Blob([JSON.stringify(questionnaireData, null, 2)], { type: "application/json" }),
         );
+    }
+
+    // Helper method to get options based on language
+    getOptions(): string[] {
+        return this.currentTask?.language === Language.GERMAN ? this.options_GERMAN : this.options_ENGLISH;
     }
 }

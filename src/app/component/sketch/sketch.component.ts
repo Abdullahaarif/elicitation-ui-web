@@ -14,13 +14,42 @@ import { MessageService } from "../../shared/service/message.service";
 export class SketchComponent implements OnInit {
     @ViewChild("backgroundImage") backgroundImage!: ElementRef;
     @ViewChild("drawingCanvas", { static: false }) drawingCanvas!: ElementRef;
+
+    @ViewChild("scrollContainer", { static: false }) scrollContainer!: ElementRef;
     
 
     backgroundImageUrlDE = "./assets/Spreadsheet_DE.png";
-    backgroundImageUrlEN = "./assets/All_Scrolling_Sheets.png";
-
-    backgroundImageUrlSheet2 = "./assets/Spreadsheet_EN.png"; // New background for Sheet 2
+    backgroundImageUrlEN = "./assets/Screenshots_sheets/All_Questions/Invoice.png";
+    backgroundImageUrlSheet2 = "./assets/Screenshots_sheets/Question_Groupings/Inventory_Sheets/Inventory.png"; // New background for Sheet 2
     //backgroundImageUrlSheet3 = "./assets/background_3.png"; // New background for Sheet 3
+
+// UPDATED questionSpecificInvoiceSheets property - Invoice for Q16 will remain same:
+private questionSpecificInvoiceSheets: { [taskNumber: number]: string } = {
+    1: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/16.png",  // Q0 demo
+    2: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/2.png",   // Q1 (Swapped with Q2)
+    3: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/1.png",   // Q2
+    4: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/3.png",   // Q3
+    5: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/4.png",   // Q4
+    6: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/5.png",   // Q5
+    7: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/6.png",   // Q6
+    8: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/7.png",   // Q7
+    9: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/8.png",   // Q8
+    10: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/9.png",  // Q9
+    11: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/10.png", // Q10
+    12: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/11.png", // Q11
+    13: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/12.png", // Q12
+    14: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/13.png", // Q13
+    15: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/14.png", // Q14
+    16: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/15.png", // Q15
+    17: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/16.png", // Q16 (uses default Invoice Sheet)
+    18: "./assets/Screenshots_sheets/Question_Groupings/Invoice_Sheets/17.png"  // Q17
+};
+
+// UPDATED questionSpecificInventorySheets property:
+private questionSpecificInventorySheets: { [taskNumber: number]: string } = {
+    17: "./assets/Screenshots_sheets/Question_Groupings/Inventory_Sheets/Inventory_16.png" // Q16's custom inventory
+};
+
 
     sheetDrawings: { [sheet: string]: Array<Array<{ x: number; y: number }>> } = {
         sheet1: [],
@@ -39,6 +68,12 @@ export class SketchComponent implements OnInit {
     private screenshotQueue: Array<{sheetName: string, fileName: string, timestamp: number, resolve: Function, reject: Function}> = [];
     private isSkipTransitionScreenshot = false;
     currentBackgroundImage = this.backgroundImageUrlEN; // Initially set to Sheet1 background
+
+    private sheetScrollPositions: { [sheet: string]: { x: number; y: number } } = {
+    sheet1: { x: 0, y: 0 },
+    sheet2: { x: 0, y: 0 }
+    };
+
     // Add properties to component class
     private previousSheetDrawings: { [sheetName: string]: any[] } = {};
     private transitionCounter: { [sheetName: string]: number } = {}; // Track number of transitions
@@ -63,9 +98,9 @@ export class SketchComponent implements OnInit {
 
 
     private sheetOriginalDimensions: { [key: string]: { width: number, height: number } } = {
-        'sheet1': { width: 1150, height: 1500 },
-        'sheet2': { width: 1150, height: 550 }
-      };
+    'sheet1': { width: 1150, height: 1226 },  // Invoice sheet (changed from 1500 to 1226)
+    'sheet2': { width: 1150, height: 1302 }   // Inventory sheet (changed from 550 to 1302)
+};
       
       
       
@@ -73,33 +108,42 @@ export class SketchComponent implements OnInit {
       
       
       async changeBackground(sheet: string) {
-        // First save the current sheet's drawings if we're changing sheets
-        if (this.currentSheet !== sheet) {
-          // Save current sheet state before changing
-          this.persistAllDrawings();
-        }
-      
-        // Skip if trying to change to the current sheet
-        if (this.currentSheet === sheet) {
-          console.log(`Already on ${sheet}, no change needed`);
-          return;
-        }
-      
-        // First check if we need to take a screenshot of the current sheet before changing
-        // Skip screenshot logic if the skip flag is set
-        if (!this.isSkipTransitionScreenshot && this.currentSheet) {
-          const currentDrawings = this.sheetDrawings[this.currentSheet] || [];
-          const previousDrawings = this.previousSheetDrawings[this.currentSheet] || [];
-          
-          // Check if drawings have changed since last transition
-          const hasChanged = this.haveDrawingsChanged(currentDrawings, previousDrawings);
-          
-          if (hasChanged && this.currentTask) {
+    // Save the current scroll position before changing sheets
+    if (this.currentSheet !== sheet && this.scrollContainer) {
+        const scrollElement = this.scrollContainer.nativeElement;
+        this.sheetScrollPositions[this.currentSheet] = {
+            x: scrollElement.scrollLeft || 0,
+            y: scrollElement.scrollTop || 0
+        };
+    }
+    
+    // First save the current sheet's drawings if we're changing sheets
+    if (this.currentSheet !== sheet) {
+        // Save current sheet state before changing
+        this.persistAllDrawings();
+    }
+
+    // Skip if trying to change to the current sheet
+    if (this.currentSheet === sheet) {
+        console.log(`Already on ${sheet}, no change needed`);
+        return;
+    }
+
+    // First check if we need to take a screenshot of the current sheet before changing
+    // Skip screenshot logic if the skip flag is set
+    if (!this.isSkipTransitionScreenshot && this.currentSheet) {
+        const currentDrawings = this.sheetDrawings[this.currentSheet] || [];
+        const previousDrawings = this.previousSheetDrawings[this.currentSheet] || [];
+        
+        // Check if drawings have changed since last transition
+        const hasChanged = this.haveDrawingsChanged(currentDrawings, previousDrawings);
+        
+        if (hasChanged && this.currentTask) {
             // Initialize or increment the transition counter for this sheet
             if (!this.transitionCounter[this.currentSheet]) {
-              this.transitionCounter[this.currentSheet] = 1;
+                this.transitionCounter[this.currentSheet] = 1;
             } else {
-              this.transitionCounter[this.currentSheet]++;
+                this.transitionCounter[this.currentSheet]++;
             }
             
             // Generate a descriptive filename with transition counter
@@ -115,55 +159,81 @@ export class SketchComponent implements OnInit {
             this.previousSheetDrawings[this.currentSheet] = JSON.parse(JSON.stringify(currentDrawings));
             
             console.log(`Saved transition screenshot #${transitionCount} from ${fromSheet} to ${toSheet}`);
-          }
+        }
+    }
+    
+    // Now proceed with the sheet changing logic with explicit canvas dimension handling
+    if (sheet === 'sheet1') {
+        // Check if current task has a specific invoice sheet
+        if (this.currentTask && this.questionSpecificInvoiceSheets[this.currentTask.taskNumber]) {
+            this.currentBackgroundImage = this.questionSpecificInvoiceSheets[this.currentTask.taskNumber];
+            console.log(`Using question-specific invoice sheet for Task ${this.currentTask.taskNumber}: ${this.currentBackgroundImage}`);
+        } else {
+            // Fallback to default invoice sheet
+            this.currentBackgroundImage = this.backgroundImageUrlEN;
+            console.log(`Using default invoice sheet`);
         }
         
-        // Now proceed with the sheet changing logic with explicit canvas dimension handling
-        if (sheet === 'sheet1') {
-          this.currentBackgroundImage = this.backgroundImageUrlEN; // Sheet 1
-          
-          // Set canvas dimensions explicitly for sheet1
-          if (this.canvas) {
+        // Set canvas dimensions explicitly for sheet1
+        if (this.canvas) {
             this.canvas.width = this.sheetOriginalDimensions['sheet1'].width;
             this.canvas.height = this.sheetOriginalDimensions['sheet1'].height;
             console.log(`Set canvas dimensions for sheet1: ${this.canvas.width}x${this.canvas.height}`);
-          }
-        } else if (sheet === 'sheet2') {
-          this.currentBackgroundImage = this.backgroundImageUrlSheet2; // Sheet 2
-          
-          // Set canvas dimensions explicitly for sheet2
-          if (this.canvas) {
+        }
+    } else if (sheet === 'sheet2') {
+        // Check if current task has a specific inventory sheet
+        if (this.currentTask && this.questionSpecificInventorySheets[this.currentTask.taskNumber]) {
+            this.currentBackgroundImage = this.questionSpecificInventorySheets[this.currentTask.taskNumber];
+            console.log(`Using question-specific inventory sheet for Task ${this.currentTask.taskNumber}: ${this.currentBackgroundImage}`);
+        } else {
+            // Use default inventory sheet
+            this.currentBackgroundImage = this.backgroundImageUrlSheet2;
+            console.log(`Using default inventory sheet`);
+        }
+        
+        // Set canvas dimensions explicitly for sheet2
+        if (this.canvas) {
             this.canvas.width = this.sheetOriginalDimensions['sheet2'].width;
             this.canvas.height = this.sheetOriginalDimensions['sheet2'].height;
             console.log(`Set canvas dimensions for sheet2: ${this.canvas.width}x${this.canvas.height}`);
-          }
         }
-      
-        // Store old sheet for logging
-        const oldSheet = this.currentSheet;
-        
-        // Update the current sheet
-        this.currentSheet = sheet; 
-        
-        // Load saved drawings for the current sheet
-        this.capturedLines = this.sheetDrawings[this.currentSheet] || [];
-      
-        // Wait for the next tick to ensure the background image has updated
-        setTimeout(() => {
-          this.onImageLoad(); // Trigger background image load and redraw saved sketch
-        }, 0);
-        
-        // Save the current sheet in the task data for reference
-        if (this.currentTask) {
-          // Convert the string sheet name to a number
-          const sheetNumber = parseInt(sheet.replace('sheet', ''), 10);
-          this.currentTask.currentSheet = sheetNumber; // This should now be a number
-        }
-        
-        // Log the change for debugging
-        console.log(`Changed from ${oldSheet} to ${sheet} with background: ${this.currentBackgroundImage}`);
-      }
+    }
 
+    // Store old sheet for logging
+    const oldSheet = this.currentSheet;
+    
+    // Update the current sheet
+    this.currentSheet = sheet; 
+    
+    // Load saved drawings for the current sheet
+    this.capturedLines = this.sheetDrawings[this.currentSheet] || [];
+
+    // Wait for the next tick to ensure the background image has updated
+    setTimeout(() => {
+        this.onImageLoad(); // Trigger background image load and redraw saved sketch
+        
+        // Restore the scroll position for the new sheet
+        if (this.scrollContainer) {
+            const scrollElement = this.scrollContainer.nativeElement;
+            const savedPosition = this.sheetScrollPositions[this.currentSheet];
+            
+            setTimeout(() => {
+                scrollElement.scrollLeft = savedPosition.x;
+                scrollElement.scrollTop = savedPosition.y;
+            }, 50);
+        }
+    }, 0);
+    
+    // Save the current sheet in the task data for reference
+    if (this.currentTask) {
+        // Convert the string sheet name to a number
+        const sheetNumber = parseInt(sheet.replace('sheet', ''), 10);
+        this.currentTask.currentSheet = sheetNumber; // This should now be a number
+    }
+    
+    // Log the change for debugging
+    console.log(`Changed from ${oldSheet} to ${sheet} with background: ${this.currentBackgroundImage}`);
+}
  
 
 
@@ -234,30 +304,35 @@ private formatTimestamp(timestamp: number): string {
     
     
   ngOnInit() {
-    
     this.capturedLines = [];
     this.tasks = this.taskService.loadedTasks;
     const taskNumber = +this.route.snapshot.params["taskNumber"];
     this.currentTask = this.tasks?.find((task) => task.taskNumber === taskNumber);
-  
+
     if (this.currentTask) {
-      console.log("Current Task: ", this.currentTask.id);
-      this.currentTask.startTimeWatching = new Date();
-      
-      // Initialize the sheet drawings if not already done
-      this.sheetDrawings = this.sheetDrawings || {};
-      this.initializePreviousDrawings();
+        console.log("Current Task: ", this.currentTask.id);
+        this.currentTask.startTimeWatching = new Date();
+        
+        // NEW: Set the question-specific invoice sheet for initial load
+        if (this.questionSpecificInvoiceSheets[this.currentTask.taskNumber]) {
+            this.backgroundImageUrlEN = this.questionSpecificInvoiceSheets[this.currentTask.taskNumber];
+            this.currentBackgroundImage = this.backgroundImageUrlEN;
+            console.log(`Initial load: Using question-specific invoice sheet for Task ${this.currentTask.taskNumber}`);
+        }
+        
+        // Initialize the sheet drawings if not already done
+        this.sheetDrawings = this.sheetDrawings || {};
+        this.initializePreviousDrawings();
     } else {
-      this.messageService.taskNotFound();
+        this.messageService.taskNotFound();
     }
-    
     
     // Initialize the sheetDrawings object if it doesn't exist
     if (!this.sheetDrawings) {
-      this.sheetDrawings = {
-        sheet1: [],
-        sheet2: []
-      };
+        this.sheetDrawings = {
+            sheet1: [],
+            sheet2: []
+        };
     }
     
     // Try to load previously saved drawings from storage if available
@@ -265,19 +340,31 @@ private formatTimestamp(timestamp: number): string {
     
     // Setup automatic backup every 10 seconds
     this.saveInterval = setInterval(() => {
-      this.backupAllDrawings();
+        this.backupAllDrawings();
     }, 10000);
     
     // Setup page unload handler
     window.addEventListener('beforeunload', () => {
-      this.persistAllDrawings();
+        this.persistAllDrawings();
     });
-  }
+    // Hide browser scrollbar when component loads
+     document.body.style.overflow = 'hidden';
+}
   
   // New method to try loading saved drawings
   private tryLoadSavedDrawings(): void {
     
     console.log("Would attempt to load saved drawings here if implemented");
+    // Save scroll position periodically
+    setInterval(() => {
+    if (this.scrollContainer) {
+        const scrollElement = this.scrollContainer.nativeElement;
+        this.sheetScrollPositions[this.currentSheet] = {
+            x: scrollElement.scrollLeft || 0,
+            y: scrollElement.scrollTop || 0
+        };
+    }
+    }, 500);
   }
 
     
@@ -468,172 +555,172 @@ private formatTimestamp(timestamp: number): string {
     
     
     private async processScreenshotQueue(): Promise<void> {
-        // If already processing or queue is empty, return
-        if (this.screenshotInProgress || this.screenshotQueue.length === 0) {
-            return;
-        }
+    // If already processing or queue is empty, return
+    if (this.screenshotInProgress || this.screenshotQueue.length === 0) {
+        return;
+    }
+
+    // Set flag to indicate processing
+    this.screenshotInProgress = true;
+
+    // Get the next item from the queue
+    const nextItem = this.screenshotQueue.shift();
     
-        // Set flag to indicate processing
-        this.screenshotInProgress = true;
-    
-        // Get the next item from the queue
-        const nextItem = this.screenshotQueue.shift();
-        
-        if (!nextItem) {
+    if (!nextItem) {
+        this.screenshotInProgress = false;
+        return;
+    }
+
+    // Destructure the item properties
+    const sheetName = nextItem.sheetName;
+    const fileName = nextItem.fileName;
+    const timestamp = nextItem.timestamp;
+    const resolve = nextItem.resolve;
+    const reject = nextItem.reject;
+
+    try {
+        if (!this.canvas || !this.context) {
+            console.error('Canvas or context not available');
+            reject(new Error('Canvas not initialized'));
             this.screenshotInProgress = false;
+            this.processScreenshotQueue(); // Process next item
             return;
         }
-    
-        // Destructure the item properties
-        const sheetName = nextItem.sheetName;
-        const fileName = nextItem.fileName;
-        const timestamp = nextItem.timestamp;
-        const resolve = nextItem.resolve;
-        const reject = nextItem.reject;
-    
-        try {
-            if (!this.canvas || !this.context) {
-                console.error('Canvas or context not available');
-                reject(new Error('Canvas not initialized'));
-                this.screenshotInProgress = false;
-                this.processScreenshotQueue(); // Process next item
-                return;
+
+        // Format the timestamp in a readable way
+        const formattedTimestamp = this.formatTimestamp(timestamp);
+
+        // Log the request we're about to process
+        console.log(`Processing screenshot request for ${sheetName} with filename ${fileName} (Time: ${formattedTimestamp})`);
+
+        // Clean the filename
+        const baseFileName: string = fileName.replace(/_sheet\d+$/, ''); 
+        const sheetNumber: string = sheetName.replace('sheet', '');
+        
+        // Use the formatted timestamp in the filename
+        // Format: T20240325_142530_123_Task_1_sheet1.png
+        const cleanFileName: string = `T${formattedTimestamp}_${baseFileName}_sheet${sheetNumber}.png`;
+
+        console.log(`Generating screenshot with timestamp ${formattedTimestamp} for ${sheetName}, saving as: ${cleanFileName}`);
+        
+        // Create a temporary canvas for capturing the screenshot
+        const tempCanvas: HTMLCanvasElement = document.createElement("canvas");
+        const tempContext: CanvasRenderingContext2D | null = tempCanvas.getContext("2d");
+        if (!tempContext) {
+            console.error('Could not create temporary canvas context');
+            reject(new Error('Temporary canvas context creation failed'));
+            this.screenshotInProgress = false;
+            this.processScreenshotQueue(); // Process next item
+            return;
+        }
+
+        // Set fixed dimensions for the output screenshot based on the original dimensions for this sheet
+        const originalDimensions = this.sheetOriginalDimensions[sheetName];
+        const targetWidth = originalDimensions.width;
+        const targetHeight = originalDimensions.height;
+        
+        tempCanvas.width = targetWidth;
+        tempCanvas.height = targetHeight;
+
+        // Determine the correct background image based on sheet name
+        let backgroundImageUrl: string;
+        if (sheetName === "sheet1") {
+            // Use question-specific invoice sheet if available
+            if (this.currentTask && this.questionSpecificInvoiceSheets[this.currentTask.taskNumber]) {
+                backgroundImageUrl = this.questionSpecificInvoiceSheets[this.currentTask.taskNumber];
+            } else {
+                backgroundImageUrl = this.backgroundImageUrlEN;
             }
-    
-            // Format the timestamp in a readable way
-            const formattedTimestamp = this.formatTimestamp(timestamp);
-    
-            // Log the request we're about to process
-            console.log(`Processing screenshot request for ${sheetName} with filename ${fileName} (Time: ${formattedTimestamp})`);
-    
-            // Clean the filename
-            const baseFileName: string = fileName.replace(/_sheet\d+$/, ''); 
-            const sheetNumber: string = sheetName.replace('sheet', '');
-            
-            // Use the formatted timestamp in the filename
-            // Format: T20240325_142530_123_Task_1_sheet1.png
-            const cleanFileName: string = `T${formattedTimestamp}_${baseFileName}_sheet${sheetNumber}.png`;
-    
-            console.log(`Generating screenshot with timestamp ${formattedTimestamp} for ${sheetName}, saving as: ${cleanFileName}`);
-            
-            // Create a temporary canvas for capturing the screenshot
-            const tempCanvas: HTMLCanvasElement = document.createElement("canvas");
-            const tempContext: CanvasRenderingContext2D | null = tempCanvas.getContext("2d");
-            if (!tempContext) {
-                console.error('Could not create temporary canvas context');
-                reject(new Error('Temporary canvas context creation failed'));
-                this.screenshotInProgress = false;
-                this.processScreenshotQueue(); // Process next item
-                return;
+        } else {
+            // Check for question-specific inventory sheet
+            if (this.currentTask && this.questionSpecificInventorySheets[this.currentTask.taskNumber]) {
+                backgroundImageUrl = this.questionSpecificInventorySheets[this.currentTask.taskNumber];
+            } else {
+                backgroundImageUrl = this.backgroundImageUrlSheet2;
             }
-    
-            // Set fixed dimensions for the output screenshot based on the original dimensions for this sheet
-            const originalDimensions = this.sheetOriginalDimensions[sheetName];
-            const targetWidth = originalDimensions.width;
-            const targetHeight = originalDimensions.height;
-            
-            tempCanvas.width = targetWidth;
-            tempCanvas.height = targetHeight;
-    
-            // Determine the correct background image based on sheet name
-            const backgroundImageUrl: string = sheetName === "sheet1" 
-                ? this.backgroundImageUrlEN 
-                : this.backgroundImageUrlSheet2;
-    
-            const image: HTMLImageElement = new Image();
-            image.crossOrigin = "anonymous";
-            image.src = backgroundImageUrl;
-    
-            image.onload = () => {
-                try {
-                    // Draw the background image to fill the canvas exactly
-                    tempContext.drawImage(image, 0, 0, tempCanvas.width, tempCanvas.height);
-                    
-                    // Use the original dimensions for scaling calculations, not the current canvas dimensions
-                    const originalWidth = originalDimensions.width;
-                    const originalHeight = originalDimensions.height;
-                    
-                    // Calculate scaling based on original dimensions
-                    const scaleX = targetWidth / originalWidth;
-                    const scaleY = targetHeight / originalHeight;
-                    
-                    console.log(`Using fixed scaling for ${sheetName}: X=${scaleX.toFixed(3)}, Y=${scaleY.toFixed(3)}`);
-                    console.log(`Original dimensions: ${originalWidth}x${originalHeight}`);
-                    console.log(`Target dimensions: ${targetWidth}x${targetHeight}`);
-                    
-                    // Draw the lines with proper scaling
-                    tempContext.strokeStyle = "blue";
-                    tempContext.lineWidth = 2;
-                    
-                    // Get the drawings for the current sheet
-                    const sheetDrawings = this.sheetDrawings[sheetName] || [];
-                    console.log(`Drawing ${sheetDrawings.length} lines for ${sheetName}`);
-                    
-                    // Apply our transformation to each drawing point
-                    for (const line of sheetDrawings) {
-                        if (line.length > 1) {
-                            tempContext.beginPath();
-                            
-                            // Transform the first point
-                            const startX: number = line[0].x * scaleX;
-                            const startY: number = line[0].y * scaleY;
-                            
-                            tempContext.moveTo(startX, startY);
-                            
-                            // Transform all subsequent points
-                            for (let i = 1; i < line.length; i++) {
-                                const pointX: number = line[i].x * scaleX;
-                                const pointY: number = line[i].y * scaleY;
-                                tempContext.lineTo(pointX, pointY);
-                            }
-                            
-                            tempContext.stroke();
+        }
+
+        const image: HTMLImageElement = new Image();
+        image.crossOrigin = "anonymous";
+        image.src = backgroundImageUrl;
+
+        image.onload = () => {
+            try {
+                // Draw the background image to fill the canvas exactly
+                tempContext.drawImage(image, 0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // Use the original dimensions for scaling calculations, not the current canvas dimensions
+                const originalWidth = originalDimensions.width;
+                const originalHeight = originalDimensions.height;
+                
+                // Calculate scaling based on original dimensions
+                const scaleX = targetWidth / originalWidth;
+                const scaleY = targetHeight / originalHeight;
+                
+                console.log(`Using fixed scaling for ${sheetName}: X=${scaleX.toFixed(3)}, Y=${scaleY.toFixed(3)}`);
+                console.log(`Original dimensions: ${originalWidth}x${originalHeight}`);
+                console.log(`Target dimensions: ${targetWidth}x${targetHeight}`);
+                
+                // Draw the lines with proper scaling
+                tempContext.strokeStyle = "blue";
+                tempContext.lineWidth = 2;
+                
+                // Get the drawings for the current sheet
+                const sheetDrawings = this.sheetDrawings[sheetName] || [];
+                console.log(`Drawing ${sheetDrawings.length} lines for ${sheetName}`);
+                
+                // Apply our transformation to each drawing point
+                for (const line of sheetDrawings) {
+                    if (line.length > 1) {
+                        tempContext.beginPath();
+                        
+                        // Transform the first point
+                        const startX: number = line[0].x * scaleX;
+                        const startY: number = line[0].y * scaleY;
+                        
+                        tempContext.moveTo(startX, startY);
+                        
+                        // Transform all subsequent points
+                        for (let i = 1; i < line.length; i++) {
+                            const pointX: number = line[i].x * scaleX;
+                            const pointY: number = line[i].y * scaleY;
+                            tempContext.lineTo(pointX, pointY);
                         }
+                        
+                        tempContext.stroke();
                     }
-    
-                    // Convert to Blob and save as PNG
-                    tempCanvas.toBlob((blob) => {
-                        if (blob) {
-                            this.dataStorageService.saveData(cleanFileName, blob);
-                            console.log(`Screenshot with timestamp ${formattedTimestamp} saved successfully: ${cleanFileName}`);
-                            
-                            // Resolve the promise for this screenshot
-                            resolve();
-                            
-                            // Clean up
-                            tempCanvas.remove();
-                            
-                            // Clear the flag and process the next item
-                            this.screenshotInProgress = false;
-                            this.processScreenshotQueue();
-                        } else {
-                            console.error('Failed to create blob for screenshot');
-                            reject(new Error('Blob creation failed'));
-                            
-                            // Clean up
-                            tempCanvas.remove();
-                            
-                            // Clear the flag and process the next item
-                            this.screenshotInProgress = false;
-                            this.processScreenshotQueue();
-                        }
-                    }, 'image/png');
-                } catch (error) {
-                    console.error('Error in screenshot generation:', error);
-                    reject(error);
-                    
-                    // Clean up
-                    tempCanvas.remove();
-                    
-                    // Clear the flag and process the next item
-                    this.screenshotInProgress = false;
-                    this.processScreenshotQueue();
                 }
-            };
-    
-            image.onerror = () => {
-                console.error(`Failed to load background image for ${sheetName}:`, backgroundImageUrl);
-                reject(new Error('Image loading failed'));
+
+                // Convert to Blob and save as PNG
+                tempCanvas.toBlob((blob) => {
+                    if (blob) {
+                        this.dataStorageService.saveData(cleanFileName, blob);
+                        console.log(`Screenshot with timestamp ${formattedTimestamp} saved successfully: ${cleanFileName}`);
+                        
+                        // Resolve the promise for this screenshot
+                        resolve();
+                        
+                        // Clean up
+                        tempCanvas.remove();
+                        
+                        // Clear the flag and process the next item
+                        this.screenshotInProgress = false;
+                        this.processScreenshotQueue();
+                    } else {
+                        console.error('Failed to create blob for screenshot');
+                        reject(new Error('Blob creation failed'));
+                        
+                        // Clean up
+                        tempCanvas.remove();
+                        
+                        // Clear the flag and process the next item
+                        this.screenshotInProgress = false;
+                        this.processScreenshotQueue();
+                    }
+                }, 'image/png');
+            } catch (error) {
+                console.error('Error in screenshot generation:', error);
+                reject(error);
                 
                 // Clean up
                 tempCanvas.remove();
@@ -641,16 +728,29 @@ private formatTimestamp(timestamp: number): string {
                 // Clear the flag and process the next item
                 this.screenshotInProgress = false;
                 this.processScreenshotQueue();
-            };
-        } catch (error) {
-            console.error('Unexpected error in processScreenshotQueue:', error);
-            reject(error);
+            }
+        };
+
+        image.onerror = () => {
+            console.error(`Failed to load background image for ${sheetName}:`, backgroundImageUrl);
+            reject(new Error('Image loading failed'));
+            
+            // Clean up
+            tempCanvas.remove();
             
             // Clear the flag and process the next item
             this.screenshotInProgress = false;
             this.processScreenshotQueue();
-        }
+        };
+    } catch (error) {
+        console.error('Unexpected error in processScreenshotQueue:', error);
+        reject(error);
+        
+        // Clear the flag and process the next item
+        this.screenshotInProgress = false;
+        this.processScreenshotQueue();
     }
+}
 
 
     // Backup function to save drawings due to SKipTask mishandling
@@ -766,6 +866,8 @@ private formatTimestamp(timestamp: number): string {
         window.removeEventListener('beforeunload', () => {
           this.persistAllDrawings();
         });
+        // Restore browser scrollbar when leaving component
+        document.body.style.overflow = '';
       }
       
       
